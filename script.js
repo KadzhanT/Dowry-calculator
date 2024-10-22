@@ -1,102 +1,97 @@
-const btn = document.querySelector('.js-calculate-price');
+const calculateBtn = document.querySelector('.js-get-price');
 
-const qalyn = {
-    education: {
-        undergraduate: { coeff: 1.5 },
-        college: { coeff: 1.2 },
-        highSchool: { coeff: 1.05 },
-        middleSchool: { coeff: 0.9 }
+const dowryFactors = {
+    educationLevel: {
+        undergraduate: { factor: 1.5 },
+        collegeGraduate: { factor: 1.2 },
+        highSchoolGraduate: { factor: 1.05 },
+        middleSchoolGraduate: { factor: 0.9 }
     },
-    netWorth: {
-        upperClass: { coeff: 2 },
-        middleClass: { coeff: 1.5 },
-        lowerClass: { coeff: 1.2 } 
+    financialStatus: {
+        wealthy: { factor: 2 },
+        middleIncome: { factor: 1.5 },
+        lowerIncome: { factor: 1.2 }
     },
-    caste: {
-        brahmin: { bonus: 100 },
-        kshatriya: { bonus: 50 },
-        vaishya: { bonus: 20 },
-        shudra: { bonus: 10 },
-        varna: { bonus: -50 }
+    socialClass: {
+        brahmin: { increment: 100 },
+        kshatriya: { increment: 50 },
+        vaishya: { increment: 20 },
+        shudra: { increment: 10 },
+        varna: { decrement: -50 }
     },
-    skills: {
-        musician: { bonus: 10 },
-        cook: { bonus: 20 },
-        easygoing: { bonus: 15 },
-        singer: { bonus: 10 }
+    personalSkills: {
+        musician: { increment: 10 },
+        chef: { increment: 20 },
+        friendly: { increment: 15 },
+        vocalist: { increment: 10 }
     },
-    age: {
-        youngAdult: { coeff: 1.5 },
-        midAdult: { coeff: 1.2 },
-        olderAdult: { coeff: 0.95 }
+    ageGroup: {
+        youth: { factor: 1.5 },
+        adult: { factor: 1.2 },
+        senior: { factor: 0.95 }
     },
-    reputation: {
-        gossipParents: { coeff: 0.85 },
-        gossipCharacter: { coeff: 0.9 },
-        generalGossip: { bonus: -20 }
+    socialReputation: {
+        parentalGossip: { factor: 0.85 },
+        personalCharacterGossip: { factor: 0.9 },
+        generalRumor: { decrement: -20 }
     }
 };
 
-
-
-
-btn.addEventListener('click', () => {
-    let startingPrice = 100; 
+calculateBtn.addEventListener('click', () => {
+    let basePrice = 100; 
     
-    const education = document.querySelector('#education');
-    const networth = document.querySelector('#networth');
-    const caste = document.querySelector('#caste');
-    const skills = document.querySelectorAll('input[name="skills"]:checked'); 
-    const age = document.querySelector('input[name="age"]:checked');
-    const reputation = document.querySelectorAll('input[name="reputation"]:checked');
+    const selectedEducation = document.querySelector('#educationLevel');
+    const selectedWealth = document.querySelector('#financialStatus');
+    const selectedClass = document.querySelector('#socialClass');
+    const selectedSkills = document.querySelectorAll('input[name="personalSkills"]:checked');
+    const selectedAge = document.querySelector('input[name="ageGroup"]:checked');
+    const selectedReputation = document.querySelectorAll('input[name="socialReputation"]:checked');
 
-    
-    if (!education || !networth || !caste || !age) {
-        console.error("One or more necessary fields are not selected.");
+    if (!selectedEducation || !selectedWealth || !selectedClass || !selectedAge) {
+        console.error("Please fill in all required fields.");
         return;
     }
 
-    calculatePrice(education, networth, caste, skills, age, reputation, startingPrice,); 
+    computeDowry(selectedEducation, selectedWealth, selectedClass, selectedSkills, selectedAge, selectedReputation, basePrice); 
 });
 
-function calculatePrice(education, networth, caste, skills, age, reputation, startingPrice,) {
-    const totalPrice = document.querySelector('.priceTotal');
-    const selectedEducation = education.value;
-    if (qalyn.education[selectedEducation]) {
-        startingPrice *= qalyn.education[selectedEducation].coeff; 
+function computeDowry(education, wealth, caste, skills, age, reputation, basePrice) {
+    const finalPriceElement = document.querySelector('.finalPrice');
+    const chosenEducation = education.value;
+    if (dowryFactors.educationLevel[chosenEducation]) {
+        basePrice *= dowryFactors.educationLevel[chosenEducation].factor; 
     }
 
-    const selectedNetWorth = networth.value; 
-    if (qalyn.netWorth[selectedNetWorth]) {
-        startingPrice *= qalyn.netWorth[selectedNetWorth].coeff; 
+    const chosenWealth = wealth.value; 
+    if (dowryFactors.financialStatus[chosenWealth]) {
+        basePrice *= dowryFactors.financialStatus[chosenWealth].factor; 
     }
 
-    const selectedCaste = caste.value; 
-    if (qalyn.caste[selectedCaste]) {
-        startingPrice += qalyn.caste[selectedCaste].bonus; 
+    const chosenClass = caste.value; 
+    if (dowryFactors.socialClass[chosenClass]) {
+        basePrice += dowryFactors.socialClass[chosenClass].increment; 
     }
 
     skills.forEach(skill => {
-        if (qalyn.skills[skill.value]) {
-            startingPrice += qalyn.skills[skill.value].bonus; 
+        if (dowryFactors.personalSkills[skill.value]) {
+            basePrice += dowryFactors.personalSkills[skill.value].increment; 
         }
     });
 
-   const selectedAge = age.value; 
-   if (selectedAge && qalyn.age[selectedAge]) {
-        startingPrice *= qalyn.age[selectedAge].coeff;
-   }
-
+    const chosenAge = age.value; 
+    if (chosenAge && dowryFactors.ageGroup[chosenAge]) {
+        basePrice *= dowryFactors.ageGroup[chosenAge].factor;
+    }
 
     reputation.forEach(rep => {
-        if (rep.value === 'generalGossip') {
-            startingPrice += qalyn.reputation.generalGossip.bonus; 
-        } else if (qalyn.reputation[rep.value]) {
-            startingPrice *= qalyn.reputation[rep.value].coeff; 
+        if (rep.value === 'generalRumor') {
+            basePrice += dowryFactors.socialReputation.generalRumor.decrement; 
+        } else if (dowryFactors.socialReputation[rep.value]) {
+            basePrice *= dowryFactors.socialReputation[rep.value].factor; 
         }
     });
 
-    console.log("Calculated Price:", startingPrice);
+    console.log("Final Dowry Price:", basePrice);
 
-    totalPrice.innerHTML = `total Price: $${startingPrice}`;
+    finalPriceElement.innerHTML = `Final Price: $${basePrice}`;
 }
